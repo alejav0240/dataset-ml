@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sesión de musicoterapia",
+  "type": "object",
+  "required": [
+    "session_id",
+    "dataset_version",
+    "participants",
+    "recording"
+  ],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "pattern": "^S[0-9]{3,}$"
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "PACIENTE",
+              "TERAPEUTA",
+              "OTRO",
+              "DESCONOCIDO"
+            ]
+          }
+        }
+      }
+    },
+    "recording": {
+      "type": "object",
+      "required": [
+        "original_video"
+      ],
+      "properties": {
+        "original_video": {
+          "type": "string"
+        },
+        "audio": {
+          "type": "string"
+        },
+        "video_only": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

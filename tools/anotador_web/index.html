@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Anotador DEMUCA</title>
+  <style>
+    :root { color-scheme: dark; --bg:#10141c; --panel:#19202b; --line:#303b4b; --accent:#65d1b2; --danger:#ff7676; }
+    * { box-sizing:border-box } body { margin:0; font:14px system-ui,sans-serif; background:var(--bg); color:#edf3fa }
+    header { display:flex; gap:16px; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); background:#131925 }
+    header h1 { font-size:18px; margin:0 auto 0 0 } select,input,textarea,button { font:inherit; color:inherit; background:#111722; border:1px solid var(--line); border-radius:6px; padding:8px }
+    button { cursor:pointer } button:hover { border-color:var(--accent) } button.primary { background:var(--accent); color:#07120f; font-weight:700 } button.danger { color:var(--danger) }
+    main { display:grid; grid-template-columns:minmax(520px,2fr) minmax(360px,1fr); gap:14px; padding:14px; height:calc(100vh - 64px) }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto }
+    video { width:100%; max-height:62vh; background:#000; border-radius:8px }
+    .transport,.time-row,.actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px }
+    .clock { font:600 18px ui-monospace,monospace; color:var(--accent) }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    label { display:flex; flex-direction:column; gap:5px; color:#bfcadb } label.full { grid-column:1/-1 }
+    .attributes { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .multi { margin:14px 0; padding:12px; border:1px solid var(--line); border-radius:8px }
+    .multi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px }
+    .multi-card { padding:10px; border:1px solid var(--line); border-radius:8px; background:#141b25 }
+    .multi-card h4 { margin:0 0 8px; display:flex; gap:7px; align-items:center }
+    .multi-card label { margin:7px 0 }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:12px } th,td { text-align:left; padding:7px; border-bottom:1px solid var(--line); vertical-align:top } tr.selected { background:#253449 }
+    .badge { display:inline-block; padding:2px 6px; border-radius:10px; background:#293849 }
+    #message { min-height:20px; margin-top:8px } .ok { color:var(--accent) } .error { color:var(--danger) }
+    @media (max-width:950px) { main { grid-template-columns:1fr; height:auto } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Anotador audiovisual DEMUCA</h1>
+  <label>Sesión <select id="session"></select></label>
+  <label>Modalidad <select id="modality"><option value="visual">Visual</option><option value="audio">Audio</option><option value="interaction">Interacción</option></select></label>
+</header>
+<main>
+  <section class="panel">
+    <section class="multi">
+      <h3>Cola de revisión (solo navegación)</h3>
+      <div class="transport">
+        <label>Tarea <select id="review-task"><option value="">Sin cola de revisión</option></select></label>
+        <span id="review-task-status" class="badge">Las tareas no se modifican desde esta herramienta</span>
+      </div>
+      <p><strong>Referencias automáticas, no validadas:</strong> son pistas para revisar el fragmento, no etiquetas ni ground truth. No se copian a los eventos.</p>
+      <pre id="review-candidates">Seleccioná una tarea para consultar las referencias disponibles.</pre>
+    </section>
+    <video id="video" controls preload="metadata"></video>
+    <div class="transport">
+      <button data-jump="-5">−5 s</button><button data-jump="-1">−1 s</button>
+      <span id="clock" class="clock">00:00.000</span>
+      <button data-jump="1">+1 s</button><button data-jump="5">+5 s</button>
+      <label>Velocidad <select id="speed"><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label>
+    </div>
+    <div class="time-row">
+      <button id="mark-start">Usar tiempo como inicio</button>
+      <button id="mark-end">Usar tiempo como fin</button>
+      <span>Atajos: <span class="badge">I inicio</span> <span class="badge">O fin</span> <span class="badge">Espacio play/pausa</span></span>
+    </div>
+    <section class="multi">
+      <h3>Anotación simultánea</h3>
+      <p>El inicio y fin del formulario se aplican a todas las modalidades seleccionadas.</p>
+      <div id="multi-forms" class="multi-grid"></div>
+      <button id="save-multi" class="primary">Guardar modalidades seleccionadas</button>
+    </section>
+    <h3>Eventos guardados</h3>
+    <table><thead><tr><th>#</th><th>Tiempo</th><th>Tipo</th><th>Actor</th><th>Atributos</th><th></th></tr></thead><tbody id="events"></tbody></table>
+  </section>
+  <aside class="panel">
+    <h2 id="form-title">Nueva anotación</h2>
+    <div class="form-grid">
+      <label>Inicio (s)<input id="start" type="number" min="0" step="0.001"></label>
+      <label>Fin (s)<input id="end" type="number" min="0" step="0.001"></label>
+      <label class="full">Tipo <select id="type"></select></label>
+      <label id="participant-wrap">Participante <select id="participant"></select></label>
+      <label id="speaker-wrap">Hablante <select id="speaker"></select></label>
+      <label id="participants-wrap" class="full">Participantes (separados por coma)<input id="participants" placeholder="P001,T001"></label>
+      <div id="attributes" class="attributes"></div>
+      <label class="full">Notas <textarea id="notes" rows="3" placeholder="Descripción observable o duda para revisión"></textarea></label>
+      <label><span>Dato demostrativo</span><input id="example" type="checkbox"></label>
+    </div>
+    <div class="actions"><button id="save" class="primary">Guardar evento</button><button id="cancel">Limpiar</button></div>
+    <div id="message"></div>
+    <p>Los eventos se guardan en los JSON canónicos. Antes de cada cambio se conserva una copia <code>.json.bak</code>.</p>
+  </aside>
+</main>
+<script>
+const $=id=>document.getElementById(id); let config, events=[], editing=null;
+function timeLabel(value){const m=Math.floor(value/60),s=value-m*60;return `${String(m).padStart(2,'0')}:${s.toFixed(3).padStart(6,'0')}`}
+function message(text,error=false){$('message').textContent=text;$('message').className=error?'error':'ok'}
+async function request(url,options={}){const r=await fetch(url,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});const data=await r.json();if(!r.ok)throw new Error(data.error||'Error');return data}
+function currentSession(){return config.sessions.find(s=>s.session_id===$('session').value)}
+function fillPeople(){const people=currentSession()?.participants||[];for(const id of ['participant','speaker']){$(id).innerHTML='<option value="">— seleccionar —</option>'+people.map(p=>`<option value="${p.id}">${p.id} · ${p.role}</option>`).join('')}}
+function fillTypes(){const schema=config.schema[$('modality').value];$('type').innerHTML=Object.keys(schema).map(x=>`<option>${x}</option>`).join('');renderAttributes()}
+function multiPeopleOptions(){return '<option value="">— seleccionar —</option>'+(currentSession()?.participants||[]).map(p=>`<option value="${p.id}">${p.id} · ${p.role}</option>`).join('')}
+function renderMultiForms(){const labels={visual:'Visual',audio:'Audio',interaction:'Interacción'};$('multi-forms').innerHTML=Object.entries(labels).map(([mod,label])=>`<div class="multi-card" data-multi="${mod}"><h4><input type="checkbox" data-multi-enabled="${mod}"> ${label}</h4><label>Tipo<select data-multi-type="${mod}">${Object.keys(config.schema[mod]).map(x=>`<option>${x}</option>`).join('')}</select></label>${mod==='visual'?`<label>Participante<select data-multi-person="${mod}">${multiPeopleOptions()}</select></label>`:''}${mod==='audio'?`<label>Hablante<select data-multi-person="${mod}">${multiPeopleOptions()}</select></label>`:''}${mod==='interaction'?`<label>Participante<select data-multi-person="${mod}">${multiPeopleOptions()}</select></label><label>Participantes<input data-multi-participants="${mod}" placeholder="P001,T001"></label>`:''}<div data-multi-attrs="${mod}"></div><label>Notas<textarea data-multi-notes="${mod}" rows="2"></textarea></label></div>`).join('');document.querySelectorAll('[data-multi-type]').forEach(el=>{el.addEventListener('change',()=>renderMultiAttributes(el.dataset.multiType));renderMultiAttributes(el.dataset.multiType)})}
+function renderMultiAttributes(mod){const type=document.querySelector(`[data-multi-type="${mod}"]`).value,attrs=(config.schema[mod][type]||{}).attributes||{},box=document.querySelector(`[data-multi-attrs="${mod}"]`);box.innerHTML=Object.entries(attrs).map(([name,spec])=>`<label>${name}<select data-multi-attribute="${mod}:${name}"><option value="">— seleccionar —</option>${(spec.values||[]).map(v=>`<option>${v}</option>`).join('')}</select></label>`).join('')}
+function renderAttributes(){const def=config.schema[$('modality').value][$('type').value]||{},attrs=def.attributes||{};$('attributes').innerHTML=Object.entries(attrs).map(([name,spec])=>`<label>${name}<select data-attribute="${name}"><option value="">— seleccionar —</option>${(spec.values||[]).map(v=>`<option>${v}</option>`).join('')}</select></label>`).join('');$('participant-wrap').style.display=(def.participante_requerido||$('modality').value==='interaction')?'flex':'none';$('speaker-wrap').style.display=(def.hablante_requerido||$('modality').value==='audio')?'flex':'none';$('participants-wrap').style.display=$('modality').value==='interaction'?'flex':'none'}
+async function loadEvents(){events=(await request(`/api/events?session=${encodeURIComponent($('session').value)}&modality=${$('modality').value}`)).events;renderEvents();clearForm()}
+async function loadReviewTasks(){const data=await request(`/api/review-tasks?session=${encodeURIComponent($('session').value)}`),select=$('review-task'),approved=data.tasks.filter(task=>task.guide_status==='approved'&&task.guide_approved_by?.trim()&&task.guide_approved_at?.trim()).length;select.innerHTML='<option value="">Seleccionar ventana de revisión</option>'+data.tasks.map((task,index)=>`<option value="${index}">${task.task_id} · ${task.start_seconds}–${task.end_seconds}s</option>`).join('');select.dataset.tasks=JSON.stringify(data.tasks);$('review-task-status').textContent=data.tasks.length?`${data.tasks.length} tareas · guía aprobada con responsable y fecha: ${approved}/${data.tasks.length} · esta pantalla no modifica la cola`:'No hay tareas de revisión para esta sesión'}
+async function loadReviewCandidates(taskId){const box=$('review-candidates');if(!taskId){box.textContent='Seleccioná una tarea para consultar las referencias disponibles.';return}try{const data=await request(`/api/review-candidates?session=${encodeURIComponent($('session').value)}&task=${encodeURIComponent(taskId)}`),hasSignal=!!data.signal_candidate,hasVisual=data.visual_observations.length>0;box.textContent=hasSignal||hasVisual?JSON.stringify({signal_candidate:data.signal_candidate,visual_observations:data.visual_observations},null,2):'No hay referencias automáticas para esta tarea.'}catch(error){box.textContent=`No se pudieron cargar las referencias: ${error.message}`}}
+function renderEvents(){$('events').innerHTML=events.map((e,i)=>`<tr class="${editing===i?'selected':''}"><td>${i+1}</td><td><button onclick="seek(${e.start_seconds})">${timeLabel(e.start_seconds)}–${timeLabel(e.end_seconds)}</button></td><td>${e.type}${e.source?' <span class="badge">propuesta no validada</span>':e.es_ejemplo?' <span class="badge">ejemplo</span>':''}</td><td>${e.participant||e.speaker||(e.participants||[]).join(', ')||'—'}</td><td>${Object.entries(e.attributes||{}).map(([k,v])=>`${k}: ${v}`).join('<br>')||'—'}</td><td>${e.source?'<span class="badge">solo lectura</span>':`<button onclick="editEvent(${i})">Editar</button> <button class="danger" onclick="deleteEvent(${i})">Eliminar</button>`}</td></tr>`).join('')}
+function seek(t){$('video').currentTime=t;$('video').focus()}
+function clearForm(){editing=null;$('form-title').textContent='Nueva anotación';$('start').value='';$('end').value='';$('participant').value='';$('speaker').value='';$('participants').value='';$('notes').value='';$('example').checked=false;renderAttributes();renderEvents();message('')}
+function editEvent(i){editing=i;const e=events[i];$('form-title').textContent=`Editar evento ${i+1}`;$('type').value=e.type;renderAttributes();$('start').value=e.start_seconds;$('end').value=e.end_seconds;$('participant').value=e.participant||'';$('speaker').value=e.speaker||'';$('participants').value=(e.participants||[]).join(',');$('notes').value=e.notes||'';$('example').checked=!!e.es_ejemplo;for(const el of document.querySelectorAll('[data-attribute]'))el.value=(e.attributes||{})[el.dataset.attribute]||'';seek(e.start_seconds);renderEvents()}
+async function save(){try{const attributes={};for(const el of document.querySelectorAll('[data-attribute]'))if(el.value)attributes[el.dataset.attribute]=el.value;const participants=$('participants').value.split(',').map(x=>x.trim()).filter(Boolean);const event={start_seconds:$('start').value,end_seconds:$('end').value,type:$('type').value,participant:$('participant').value,speaker:$('speaker').value,participants,attributes,notes:$('notes').value,es_ejemplo:$('example').checked};const body={session_id:$('session').value,modality:$('modality').value,event};const method=editing===null?'POST':'PUT';if(editing!==null)body.index=editing;events=(await request('/api/events',{method,body:JSON.stringify(body)})).events;clearForm();renderEvents();message('Evento guardado correctamente')}catch(e){message(e.message,true)}}
+async function saveMulti(){try{if($('start').value===''||$('end').value==='')throw new Error('Marca inicio y fin primero');const batch={};for(const enabled of document.querySelectorAll('[data-multi-enabled]:checked')){const mod=enabled.dataset.multiEnabled,type=document.querySelector(`[data-multi-type="${mod}"]`).value,person=document.querySelector(`[data-multi-person="${mod}"]`)?.value||'',attributes={};document.querySelectorAll(`[data-multi-attribute^="${mod}:"]`).forEach(el=>{if(el.value)attributes[el.dataset.multiAttribute.split(':')[1]]=el.value});batch[mod]={start_seconds:$('start').value,end_seconds:$('end').value,type,participant:mod!=='audio'?person:'',speaker:mod==='audio'?person:'',participants:(document.querySelector(`[data-multi-participants="${mod}"]`)?.value||'').split(',').map(x=>x.trim()).filter(Boolean),attributes,notes:document.querySelector(`[data-multi-notes="${mod}"]`).value,es_ejemplo:false}}const result=await request('/api/events/batch',{method:'POST',body:JSON.stringify({session_id:$('session').value,events:batch})});if(result.events[$('modality').value])events=result.events[$('modality').value];else await loadEvents();renderEvents();document.querySelectorAll('[data-multi-enabled]').forEach(x=>x.checked=false);message(`${Object.keys(batch).length} modalidades guardadas correctamente`)}catch(e){message(e.message,true)}}
+async function deleteEvent(i){if(!confirm(`¿Eliminar el evento ${i+1}?`))return;try{events=(await request(`/api/events?session=${encodeURIComponent($('session').value)}&modality=${$('modality').value}&index=${i}`,{method:'DELETE'})).events;clearForm();message('Evento eliminado')}catch(e){message(e.message,true)}}
+async function changeSession(){fillPeople();renderMultiForms();$('video').src=`/media?session=${encodeURIComponent($('session').value)}`;await Promise.all([loadEvents(),loadReviewTasks()])}
+async function init(){try{config=await request('/api/config');if(!config.sessions.length)throw new Error('No hay sesiones con video disponible');$('session').innerHTML=config.sessions.map(s=>`<option>${s.session_id}</option>`).join('');fillTypes();await changeSession()}catch(e){message(e.message,true)}}
+$('session').addEventListener('change',changeSession);$('modality').addEventListener('change',()=>{fillTypes();loadEvents()});$('type').addEventListener('change',renderAttributes);$('speed').addEventListener('change',()=>$('video').playbackRate=+$('speed').value);$('video').addEventListener('timeupdate',()=>$('clock').textContent=timeLabel($('video').currentTime));document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>seek(Math.max(0,$('video').currentTime+ +b.dataset.jump)));$('mark-start').onclick=()=>$('start').value=$('video').currentTime.toFixed(3);$('mark-end').onclick=()=>$('end').value=$('video').currentTime.toFixed(3);$('save').onclick=save;$('save-multi').onclick=saveMulti;$('cancel').onclick=clearForm;document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();$('video').paused?$('video').play():$('video').pause()}if(e.key.toLowerCase()==='i')$('start').value=$('video').currentTime.toFixed(3);if(e.key.toLowerCase()==='o')$('end').value=$('video').currentTime.toFixed(3)});init();
+$('review-task').addEventListener('change',()=>{const selected=$('review-task').value;if(selected===''){loadReviewCandidates('');return}const task=JSON.parse($('review-task').dataset.tasks||'[]')[+selected];if(task){seek(+task.start_seconds);$('start').value=task.start_seconds;$('end').value=task.end_seconds;loadReviewCandidates(task.task_id)}});
+</script>
+</body>
+</html>

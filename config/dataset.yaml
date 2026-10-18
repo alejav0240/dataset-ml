@@ -1,0 +1,64 @@
+conjunto_de_datos:
+  nombre: "Dataset multimodal de musicoterapia DEMUCA"
+  version: "0.1.0"
+
+  modalidades:
+    - video
+    - audio
+    - interaccion
+    - clinico
+
+  temporal:
+    unidad_principal: evento
+    ventana_de_procesamiento_segundos: 5
+    ventana_de_contexto_segundos: 30
+
+participantes:
+  permitidos:
+    - PACIENTE
+    - TERAPEUTA
+    - OTRO
+    - DESCONOCIDO
+
+eventos:
+  visual:
+    - MOVIMIENTO
+    - MOVIMIENTO_REPETITIVO
+    - CONTACTO_VISUAL
+    - INTERACCION_OBJETO
+    - ORIENTACION_CORPORAL
+
+  audio:
+    - VOCALIZACION
+    - HABLA
+    - RISA
+    - LLANTO
+    - GRITO
+    - SILENCIO
+    - ACTIVIDAD_MUSICAL
+
+  interaccion:
+    - MIRADA
+    - GESTO
+    - TACTO
+    - IMITACION
+    - RESPUESTA
+    - ACTIVIDAD_CONJUNTA
+    - INTERACCION_MUSICAL
+    - INTERACCION_VERBAL
+
+procesamiento:
+  video:
+    fps_objetivo: 10
+    ancho: 1280
+    alto: 720
+
+  audio:
+    frecuencia_de_muestreo: 16000
+    canales: 1
+
+almacenamiento:
+  bruto: "raw"
+  procesado: "processed"
+  anotaciones: "annotations"
+  metadatos: "metadata"

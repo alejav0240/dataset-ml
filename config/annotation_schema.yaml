@@ -1,0 +1,177 @@
+visual:
+
+  MOVIMIENTO:
+    description: "Movimiento corporal observable"
+    participante_requerido: true
+
+    attributes:
+
+      intensidad:
+        type: categorical
+        values:
+          - BAJO
+          - MEDIO
+          - ALTO
+
+      parte_cuerpo:
+        type: categorical
+        values:
+          - CABEZA
+          - BRAZO
+          - MANO
+          - TORSO
+          - PIERNA
+          - CUERPO_ENTERO
+          - OTRO
+
+
+  MOVIMIENTO_REPETITIVO:
+    description: "Movimiento corporal repetitivo observable"
+    participante_requerido: true
+
+    attributes:
+
+      type:
+        type: categorical
+        values:
+          - MANO
+          - BRAZO
+          - CABEZA
+          - CUERPO
+          - OTRO
+
+      frecuencia:
+        type: categorical
+        values:
+          - BAJA
+          - MEDIA
+          - ALTA
+
+
+  CONTACTO_VISUAL:
+    description: "Orientación visual hacia otra persona u objetivo"
+    participante_requerido: true
+
+    attributes:
+
+      objetivo:
+        type: categorical
+        values:
+          - PACIENTE
+          - TERAPEUTA
+          - OBJETO
+          - CAMARA
+          - OTRO
+
+
+  INTERACCION_OBJETO:
+    description: "Interacción física con un objeto"
+    participante_requerido: true
+
+    attributes:
+
+      accion:
+        type: categorical
+        values:
+          - TOCAR
+          - AGARRAR
+          - SOSTENER
+          - MOVER
+          - USAR
+          - SOLTAR
+
+      tipo_objeto:
+        type: categorical
+        values:
+          - TAMBOR
+          - GUITARRA
+          - PIANO
+          - MARACA
+          - JUGUETE
+          - OTRO
+
+
+  ORIENTACION_CORPORAL:
+    description: "Orientación corporal observable hacia una persona, objeto o actividad"
+    participante_requerido: true
+
+
+audio:
+
+  VOCALIZACION:
+    description: "Producción vocal observable del participante"
+    hablante_requerido: true
+
+    attributes:
+
+      type:
+        type: categorical
+        values:
+          - VOCALIZACION
+          - BALBUCEO
+          - HABLA
+          - OTRO
+
+
+  HABLA:
+    description: "Producción verbal inteligible del participante"
+    hablante_requerido: true
+
+
+  RISA:
+    description: "Risa observable"
+
+
+  LLANTO:
+    description: "Llanto observable"
+
+
+  GRITO:
+    description: "Grito o vocalización de alta intensidad"
+
+
+  SILENCIO:
+    description: "Ausencia de actividad vocal"
+
+
+  ACTIVIDAD_MUSICAL:
+    description: "Actividad musical observable"
+
+    attributes:
+
+      type:
+        type: categorical
+        values:
+          - TERAPEUTA_TOCANDO
+          - PACIENTE_TOCANDO
+          - TOCANDO_JUNTOS
+          - MUSICA_GRABADA
+          - CANTO
+          - ACTIVIDAD_RITMICA
+
+
+interaccion:
+
+  RESPUESTA:
+    description: "Respuesta del paciente a una acción del terapeuta"
+
+  IMITACION:
+    description: "Imitación observable"
+
+  MIRADA:
+    description: "Interacción mediante orientación visual"
+
+  GESTO:
+    description: "Interacción mediante gesto"
+
+  TACTO:
+    description: "Contacto físico"
+
+  ACTIVIDAD_CONJUNTA:
+    description: "Actividad compartida"
+
+  INTERACCION_MUSICAL:
+    description: "Interacción mediante actividad musical"
+
+  INTERACCION_VERBAL:
+    description: "Interacción verbal"
