@@ -19,12 +19,19 @@ Se abrirá `http://127.0.0.1:8765`. Si el navegador no se abre:
 ## Flujo de trabajo
 
 1. Seleccionar sesión y modalidad.
-2. Reproducir el video hasta el inicio del evento.
-3. Presionar `I` o **Usar tiempo como inicio**.
-4. Avanzar hasta el final y presionar `O` o **Usar tiempo como fin**.
-5. Elegir tipo, actor y atributos.
-6. Guardar el evento.
-7. Ejecutar `./main.py validar` al terminar un lote.
+2. Seleccionar el paciente y el terapeuta en el encabezado.
+3. Reproducir el video hasta el inicio del evento.
+4. Presionar `I` o **Usar tiempo como inicio**.
+5. Avanzar hasta el final y presionar `O` o **Usar tiempo como fin**.
+6. Elegir tipo, actor y atributos.
+7. Guardar el evento.
+8. Ejecutar `./main.py validar` al terminar un lote.
+
+Cuando la sesión tiene `processed/features/pose_landmarks.json`, el anotador
+dibuja los 33 landmarks de cada pose detectada sobre el video y los conecta
+con líneas. El color identifica el índice de pose de MediaPipe. La selección
+de paciente y terapeuta asigna actores a los formularios, pero no identifica
+automáticamente qué índice de pose corresponde a cada persona.
 
 ### Anotación simultánea
 

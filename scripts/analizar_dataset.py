@@ -40,13 +40,14 @@ def analyze_session(session_dir: Path) -> dict:
         "annotation_counts": {},
         "example_annotations": 0,
         "real_annotations": 0,
+        "annotation_candidate_ready": False,
+        "training_ready": False,
         "event_types": {},
         "features": {},
         "warnings": [],
     }
     if not metadata_path.exists():
         result["warnings"].append("Falta metadata/session.json")
-        result["training_ready"] = False
         return result
 
     metadata = load_json(metadata_path)
@@ -98,7 +99,7 @@ def analyze_session(session_dir: Path) -> dict:
             f"Contiene {result['example_annotations']} anotaciones/evaluaciones marcadas como ejemplo"
         )
 
-    result["training_ready"] = (
+    result["annotation_candidate_ready"] = (
         result["processing_complete"] and result["real_annotations"] > 0
     )
     return result
@@ -111,7 +112,12 @@ def analyze_dataset() -> dict:
         "dataset": "DEMUCA multimodal",
         "sessions_total": len(sessions),
         "sessions_processed": sum(item["processing_complete"] for item in sessions),
-        "sessions_training_ready": sum(item["training_ready"] for item in sessions),
+        "sessions_annotation_candidate_ready": sum(
+            item["annotation_candidate_ready"] for item in sessions
+        ),
+        "sessions_training_ready": 0,
+        "training_readiness_assessed": False,
+        "notice": "This structural report does not verify global approvals or authorize training.",
         "annotated_duration_seconds": round(sum(durations), 3),
         "sessions": sessions,
     }
@@ -123,11 +129,17 @@ def print_report(report: dict) -> None:
     print("=" * 58)
     print(f"Sesiones detectadas:       {report['sessions_total']}")
     print(f"Sesiones procesadas:       {report['sessions_processed']}")
-    print(f"Listas para entrenamiento: {report['sessions_training_ready']}")
+    print(
+        "Con procesamiento y anotaciones candidatas: "
+        f"{report['sessions_annotation_candidate_ready']}"
+    )
+    print("Autorización de entrenamiento: no evaluada por este informe")
     print(f"Duración con medios:       {report['annotated_duration_seconds'] / 60:.2f} min")
     for session in report["sessions"]:
-        print(f"\n[{session['session_id']}] procesada={session['processing_complete']} "
-              f"lista={session['training_ready']}")
+        print(
+            f"\n[{session['session_id']}] procesada={session['processing_complete']} "
+            f"candidata={session['annotation_candidate_ready']}"
+        )
         print(f"  eventos: {session['annotation_counts']}")
         print(f"  reales={session['real_annotations']}, ejemplos={session['example_annotations']}, "
               f"frames={session.get('frame_count', 0)}")

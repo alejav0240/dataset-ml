@@ -10,6 +10,7 @@ import mimetypes
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import webbrowser
@@ -64,6 +65,50 @@ def video_for(session_id: str) -> Path:
     return candidate
 
 
+def _has_audio_stream(path: Path) -> bool:
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=index", "-of", "csv=p=0", str(path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def preview_video_for(session_id: str) -> Path:
+    """Return a browser-compatible preview with normalized audio muxed in."""
+    base = session_dir(session_id)
+    video = video_for(session_id)
+    audio = base / "processed" / "audio" / f"{session_id}_16khz_mono.wav"
+    if not audio.is_file() or _has_audio_stream(video):
+        return video
+    preview = base / "processed" / "video" / f"{session_id}_annotator_preview.mp4"
+    if preview.is_file() and preview.stat().st_mtime >= max(video.stat().st_mtime, audio.stat().st_mtime):
+        return preview
+    preview.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{preview.name}.", suffix=".tmp.mp4", dir=preview.parent)
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-i", str(video), "-i", str(audio),
+                "-map", "0:v:0", "-map", "1:a:0",
+                "-c:v", "copy", "-c:a", "aac", "-shortest", str(temporary),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"No se pudo agregar el audio al video: {result.stderr.strip()}")
+        os.replace(temporary, preview)
+        return preview
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def annotation_path(session_id: str, modality: str) -> Path:
     if modality not in MODALITY_TO_SCHEMA:
         raise ValueError("Modalidad inválida")
@@ -86,6 +131,29 @@ def read_review_tasks(session_id: str) -> list[dict[str, str]]:
         return []
     with path.open(encoding="utf-8", newline="") as file:
         return list(csv.DictReader(file, delimiter="\t"))
+
+
+def read_pose_landmarks(session_id: str) -> dict:
+    """Return pose frames for the overlay without assigning identity to a pose."""
+    path = session_dir(session_id) / "processed" / "features" / "pose_landmarks.json"
+    if not path.is_file():
+        return {
+            "session_id": session_id,
+            "available": False,
+            "frames": [],
+            "notice": "Esta sesión no tiene un artefacto de pose procesado.",
+        }
+    payload = load_json(path)
+    if payload.get("session_id") != session_id or not isinstance(payload.get("frames"), list):
+        raise ValueError("Formato inválido en pose_landmarks.json")
+    return {
+        "session_id": session_id,
+        "available": True,
+        "sampling_fps": payload.get("sampling_fps"),
+        "landmark_count_per_pose": payload.get("landmark_count_per_pose"),
+        "frames": payload["frames"],
+        "notice": "Las poses se muestran por índice; MediaPipe no asigna automáticamente paciente o terapeuta.",
+    }
 
 
 def read_review_candidates(session_id: str, task_id: str) -> dict:
@@ -269,8 +337,10 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/review-candidates":
                 query = self.query()
                 return self.send_json(read_review_candidates(query["session"], query["task"]))
+            if parsed.path == "/api/pose":
+                return self.send_json(read_pose_landmarks(self.query()["session"]))
             if parsed.path == "/media":
-                return self.send_media(video_for(self.query()["session"]))
+                return self.send_media(preview_video_for(self.query()["session"]))
             if parsed.path in ("/", "/index.html"):
                 return self.send_static("index.html")
             if parsed.path == "/favicon.ico":
