@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from analizar_dataset import analyze_dataset, analyze_session
+from scripts.analizar_dataset import analyze_dataset, analyze_session
 
 
 class AnalyzeDatasetTests(unittest.TestCase):
@@ -42,7 +42,7 @@ class AnalyzeDatasetTests(unittest.TestCase):
             (session / "metadata" / "session.json").write_text(
                 json.dumps({"technical": {"duration_seconds": 1}}), encoding="utf-8"
             )
-            import analizar_dataset
+            import scripts.analizar_dataset as analizar_dataset
 
             original_sessions_dir = analizar_dataset.SESSIONS_DIR
             analizar_dataset.SESSIONS_DIR = root

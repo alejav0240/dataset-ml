@@ -83,7 +83,7 @@ del estado de anotación observable de S001.
 ## Próxima acción humana
 
 La guía S001 v1.0 y la aprobación de las anotaciones están registradas en
-`dataset/dataset/sessions/S001/annotations/review/`. La cola existente se cerró sin
+`dataset/sessions/S001/annotations/review/`. La cola existente se cerró sin
 regenerarla. Quedan por registrar métricas de acuerdo; estas tareas no autorizan
 por sí solas el entrenamiento. `alejandro_dev` autorizó el uso interno de S001 en
 las fases del proyecto y modelos, y aprobó el objetivo de predicción. Las aprobaciones
@@ -94,11 +94,11 @@ pacientes para la partición y métricas independientes de acuerdo.
 `GUIA_ANOTACION_TEMPLATE.md` ofrece un borrador vacío con la taxonomía técnica y
 campos para completar y aprobar. No reemplaza esta planificación ni constituye
 una guía operativa hasta que las personas autorizadas completen su aprobación.
-La carpeta `dataset/dataset/sessions/S001/annotations/review/` contiene el inventario
+La carpeta `dataset/sessions/S001/annotations/review/` contiene el inventario
 retrospectivo, `annotation_guide.md` v1.0 y `annotation_approval.json` con hashes de
 los eventos revisados. La plantilla reutilizable para otras sesiones permanece en
 `dataset/GUIA_ANOTACION_TEMPLATE.md`. Para validar la estructura de la guía:
 
 ```bash
-python dataset/scripts/validar_guia_anotacion.py --guide path/to/approved-guide.md
+python scripts/validar_guia_anotacion.py --guide path/to/approved-guide.md
 ```

@@ -8,6 +8,11 @@ import yaml
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
+try:
+    from .dataset_scope import included_session_dirs
+except ImportError:  # direct execution through main.py
+    from dataset_scope import included_session_dirs
+
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = ROOT / "dataset" / "sessions"
 SCHEMA_FILE = ROOT / "schemas" / "session.schema.json"
@@ -183,7 +188,10 @@ def main():
 
     schema = cargar_json(SCHEMA_FILE)
     ann_schema = cargar_yaml(ANNOTATION_SCHEMA_FILE) if ANNOTATION_SCHEMA_FILE.exists() else {}
-    sessions = sorted(path for path in DATASET_DIR.iterdir() if path.is_dir())
+    sessions, excluded = included_session_dirs(DATASET_DIR)
+
+    for session_id in excluded:
+        print(f"[INFO] {session_id}: excluida por configuración (fixture local)")
 
     if not sessions:
         print("[WARNING] No existen sesiones")
@@ -193,7 +201,8 @@ def main():
     print("\n" + "=" * 40)
     print("VALIDACIÓN ESTRUCTURAL DEL DATASET")
     print("=" * 40)
-    print(f"Sesiones:  {len(sessions)}")
+    print(f"Sesiones productivas:  {len(sessions)}")
+    print(f"Sesiones excluidas:     {len(excluded)}")
     print(f"Estructuralmente válidas:   {validas}")
     print(f"Estructuralmente inválidas: {len(sessions) - validas}")
     if validas != len(sessions):

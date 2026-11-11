@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from preparar_anotacion import prepare
+from scripts.preparar_anotacion import prepare
 
 
 class PrepareAnnotationTests(unittest.TestCase):
@@ -46,7 +46,7 @@ class PrepareAnnotationTests(unittest.TestCase):
             )
             output = root / "review" / "annotation_tasks.tsv"
 
-            with patch("preparar_anotacion.ROOT", root):
+            with patch("scripts.preparar_anotacion.ROOT", root):
                 prepare("S001", 5, output, overwrite=False)
 
             with output.open(encoding="utf-8", newline="") as file:

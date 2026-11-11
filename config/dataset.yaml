@@ -2,6 +2,16 @@ conjunto_de_datos:
   nombre: "Dataset multimodal de musicoterapia DEMUCA"
   version: "0.1.0"
 
+sesiones:
+  # Fixtures locales de integración; se conservan en disco pero no forman parte
+  # de los informes ni de las particiones del dataset productivo.
+  excluidas:
+    - MLFLOW-SMOKE-20261110B
+    - SMOKE-DEMO-S008
+    - SMOKE-POSE-20S
+    - SMOKE-POSE-S008
+    - SMOKE-POSE-S008-EXPLICIT
+
   modalidades:
     - video
     - audio

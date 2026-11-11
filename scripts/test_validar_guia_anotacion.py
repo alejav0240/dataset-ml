@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from validar_guia_anotacion import validate_guide
+from scripts.validar_guia_anotacion import validate_guide
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

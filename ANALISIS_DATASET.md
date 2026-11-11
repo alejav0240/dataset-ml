@@ -1,14 +1,24 @@
 # Análisis del dataset DEMUCA
 
-Fecha de auditoría: 2026-10-06
+Fecha de auditoría: 2026-11-11
 
 ## Resultado ejecutivo
 
-- Sesiones detectadas: **2** (`S001`, `S998`).
-- Sesiones estructuralmente válidas: **2**.
-- Sesiones con pipeline técnico completo: **1** (`S001`).
+- Sesiones productivas detectadas: **17**.
+- Sesiones estructuralmente válidas: **17**.
+- Sesiones con pipeline técnico completo: **11** (`S001`–`S011`).
 - Sesiones listas para entrenamiento: **0**.
-- Duración de material procesado: **24,01 minutos**.
+- Fixtures locales excluidos: **5**.
+- Duración agregada reportada: **304,92 minutos**.
+
+## Estado de las sesiones productivas
+
+`S001`–`S011` tienen pipeline técnico completo y anotaciones candidatas. Esto no
+equivale a autorización de entrenamiento: todavía faltan acuerdo independiente,
+particiones por paciente y evidencia global de consentimiento.
+
+`S012`–`S016` y `S998` conservan material demostrativo o procesamiento incompleto;
+deben completarse con datos reales o mantenerse fuera de cualquier partición.
 
 ## S001
 
@@ -36,11 +46,10 @@ fuera de cualquier partición de entrenamiento, validación o prueba.
 
 ## Conclusión
 
-La canalización técnica funciona para `S001`, pero el conjunto todavía no posee
-datos etiquetados reales ni volumen suficiente para entrenar o evaluar un modelo.
-El siguiente hito obligatorio es realizar y revisar la anotación clínica de
-`S001`, retirar la marca `es_ejemplo` únicamente en observaciones verificadas y
-agregar más sesiones independientes.
+La canalización técnica funciona para `S001` y otras sesiones productivas, pero el
+conjunto todavía no posee evidencia suficiente para entrenar o evaluar un modelo.
+No se deben retirar marcas de procedencia ni convertir ejemplos en ground truth sin
+revisión humana verificable.
 
 La revisión de coherencia DEMUCA está documentada en
 `dataset/sessions/S001/annotations/demuca/COHERENCE_REVIEW.md`: los puntajes del

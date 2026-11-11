@@ -9,6 +9,11 @@ import statistics
 from collections import Counter
 from pathlib import Path
 
+try:
+    from .dataset_scope import included_session_dirs
+except ImportError:  # direct execution through main.py
+    from dataset_scope import included_session_dirs
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SESSIONS_DIR = ROOT / "dataset" / "sessions"
@@ -106,11 +111,13 @@ def analyze_session(session_dir: Path) -> dict:
 
 
 def analyze_dataset() -> dict:
-    sessions = [analyze_session(path) for path in sorted(SESSIONS_DIR.iterdir()) if path.is_dir()]
+    session_dirs, excluded = included_session_dirs(SESSIONS_DIR)
+    sessions = [analyze_session(path) for path in session_dirs]
     durations = [item["duration_seconds"] for item in sessions if item.get("duration_seconds")]
     return {
         "dataset": "DEMUCA multimodal",
         "sessions_total": len(sessions),
+        "sessions_excluded": excluded,
         "sessions_processed": sum(item["processing_complete"] for item in sessions),
         "sessions_annotation_candidate_ready": sum(
             item["annotation_candidate_ready"] for item in sessions

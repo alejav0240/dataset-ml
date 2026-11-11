@@ -128,12 +128,28 @@ Antes de registrar una versión de guía como aprobada, el equipo puede revisar 
 completitud estructural con:
 
 ```bash
-python dataset/scripts/validar_guia_anotacion.py --guide path/to/approved-guide.md
+python scripts/validar_guia_anotacion.py --guide path/to/approved-guide.md
 ```
 
 El comando sobre la plantilla incluida debe fallar mientras queden campos pendientes.
 Un resultado válido sólo confirma campos completos y aprobación registrada; no
 certifica que los criterios sean clínicamente correctos.
+
+### Alcance y verificación
+
+Las sesiones de integración se conservan localmente, pero están declaradas en
+`config/dataset.yaml` como excluidas del dataset productivo. La validación y el
+análisis reportan esas exclusiones sin borrarlas.
+
+Para ejecutar todos los tests desde la raíz del repositorio:
+
+```bash
+python -m unittest discover -s . -p 'test_*.py'
+```
+
+El análisis estructural no autoriza entrenamiento. Antes de entrenar todavía se
+requieren revisión clínica, acuerdo independiente, consentimiento verificable y
+particiones por paciente.
 | `anotar` | Abre el video y permite crear, editar y borrar anotaciones | `./main.py anotar` |
 
 La validación comprueba integridad de archivos y vocabularios. El análisis distingue

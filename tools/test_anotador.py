@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from anotador import preview_video_for, read_pose_landmarks, read_review_candidates, read_review_tasks
+from tools.anotador import preview_video_for, read_pose_landmarks, read_review_candidates, read_review_tasks
 
 
 class ReviewTaskTests(unittest.TestCase):
@@ -14,7 +14,7 @@ class ReviewTaskTests(unittest.TestCase):
             video = sessions / "S001" / "processed" / "video" / "input.mp4"
             video.parent.mkdir(parents=True)
             video.write_bytes(b"video")
-            with patch("anotador.SESSIONS_DIR", sessions), patch("anotador._has_audio_stream", return_value=True):
+            with patch("tools.anotador.SESSIONS_DIR", sessions), patch("tools.anotador._has_audio_stream", return_value=True):
                 self.assertEqual(preview_video_for("S001"), video)
 
     def test_reads_review_queue_without_changing_task_status(self):
@@ -36,7 +36,7 @@ class ReviewTaskTests(unittest.TestCase):
                     "status": "needs_clinical_review",
                 })
 
-            with patch("anotador.SESSIONS_DIR", sessions):
+            with patch("tools.anotador.SESSIONS_DIR", sessions):
                 tasks = read_review_tasks("S001")
 
             self.assertEqual(tasks[0]["task_id"], "S001-W0001")
@@ -47,7 +47,7 @@ class ReviewTaskTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             sessions = Path(temp_dir)
             (sessions / "S001").mkdir()
-            with patch("anotador.SESSIONS_DIR", sessions):
+            with patch("tools.anotador.SESSIONS_DIR", sessions):
                 self.assertEqual(read_review_tasks("S001"), [])
 
     def test_candidates_are_read_only_references_for_a_known_task(self):
@@ -72,7 +72,7 @@ class ReviewTaskTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with patch("anotador.SESSIONS_DIR", sessions):
+            with patch("tools.anotador.SESSIONS_DIR", sessions):
                 candidates = read_review_candidates("S001", "S001-W0001")
                 with self.assertRaisesRegex(ValueError, "no existe"):
                     read_review_candidates("S001", "S001-W0002")
@@ -96,7 +96,7 @@ class ReviewTaskTests(unittest.TestCase):
                 '"frames":[{"timestamp_seconds":0,"poses":[{"pose_index":0,"landmarks":[]}]}]}',
                 encoding="utf-8",
             )
-            with patch("anotador.SESSIONS_DIR", sessions):
+            with patch("tools.anotador.SESSIONS_DIR", sessions):
                 payload = read_pose_landmarks("S001")
             self.assertTrue(payload["available"])
             self.assertEqual(payload["frames"][0]["poses"][0]["pose_index"], 0)
@@ -105,7 +105,7 @@ class ReviewTaskTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             sessions = Path(temp_dir)
             (sessions / "S001").mkdir()
-            with patch("anotador.SESSIONS_DIR", sessions):
+            with patch("tools.anotador.SESSIONS_DIR", sessions):
                 payload = read_pose_landmarks("S001")
             self.assertFalse(payload["available"])
 
