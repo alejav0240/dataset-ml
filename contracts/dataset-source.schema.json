@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/alejav0240/dataset-ml/contracts/dataset-source.schema.json",
+  "title": "DEMUCA dataset source contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "repository",
+    "ref",
+    "sessions_root",
+    "session_schema",
+    "media_policy",
+    "training_policy"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1.0"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri"
+    },
+    "ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sessions_root": {
+      "type": "string",
+      "const": "dataset/sessions"
+    },
+    "session_schema": {
+      "type": "string",
+      "const": "schemas/session.schema.json"
+    },
+    "media_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_media_tracked",
+        "mount_env",
+        "allowed_layouts"
+      ],
+      "properties": {
+        "raw_media_tracked": {
+          "const": false
+        },
+        "mount_env": {
+          "type": "string",
+          "const": "DEMUCA_DATASET_ROOT"
+        },
+        "allowed_layouts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "dataset/sessions",
+              "sessions",
+              "dataset/dataset/sessions"
+            ]
+          }
+        }
+      }
+    },
+    "training_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_human_review",
+        "clinical_scores_are_targets"
+      ],
+      "properties": {
+        "requires_human_review": {
+          "const": true
+        },
+        "clinical_scores_are_targets": {
+          "const": false
+        }
+      }
+    }
+  }
+}
