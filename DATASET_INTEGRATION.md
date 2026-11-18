@@ -55,7 +55,7 @@ El adaptador de resolución de rutas del pipeline también acepta el checkout di
 
 ```bash
 python -m json.tool contracts/dataset-source.json
-python -m unittest discover -s scripts -p 'test_*.py'
+python -m unittest scripts.test_analizar_dataset
 ```
 
 La ausencia de dataset/sessions en un clon fresco es esperada hasta montar el volumen privado de datos.
