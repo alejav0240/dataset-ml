@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Canonical source metadata for the external dataset checkout.",
+  "contract_version": "1.0",
+  "repository": "https://github.com/alejav0240/dataset-ml",
+  "ref": "main",
+  "sessions_root": "dataset/sessions",
+  "session_schema": "schemas/session.schema.json",
+  "media_policy": {
+    "raw_media_tracked": false,
+    "mount_env": "DEMUCA_DATASET_ROOT",
+    "allowed_layouts": [
+      "dataset/sessions",
+      "sessions",
+      "dataset/dataset/sessions"
+    ]
+  },
+  "training_policy": {
+    "requires_human_review": true,
+    "clinical_scores_are_targets": false
+  }
+}
