@@ -1,0 +1,43 @@
+name: Validate dataset contract
+
+on:
+  push:
+    paths:
+      - "contracts/**"
+      - "schemas/**"
+      - "config/**"
+      - "scripts/**"
+      - ".github/workflows/validate-dataset-contract.yml"
+  pull_request:
+    paths:
+      - "contracts/**"
+      - "schemas/**"
+      - "config/**"
+      - "scripts/**"
+      - ".github/workflows/validate-dataset-contract.yml"
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m json.tool contracts/dataset-source.json
+      - run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("contracts/dataset-source.json").read_text())
+          schema = json.loads(Path("contracts/dataset-source.schema.json").read_text())
+          assert payload["contract_version"] == schema["properties"]["contract_version"]["const"]
+          assert payload["sessions_root"] == "dataset/sessions"
+          assert payload["media_policy"]["raw_media_tracked"] is False
+          assert payload["training_policy"]["requires_human_review"] is True
+          assert payload["training_policy"]["clinical_scores_are_targets"] is False
+          print("dataset source contract: OK")
+          PY
+      - run: python -m unittest discover -s scripts -p 'test_*.py'
